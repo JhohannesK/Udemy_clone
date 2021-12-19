@@ -1,4 +1,4 @@
-#!/run/media/domeh_john/Dev/Programming_Env/django_playground/venv/bin/python
+#!/run/media/jhohannes/Dev/Programming_Env/UDEMY/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

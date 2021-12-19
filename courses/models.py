@@ -3,6 +3,8 @@ from django.db import models
 import uuid
 from django.contrib.auth import get_user_model
 from decimal import Decimal
+from .carry import get_time
+from mutagen.mp4 import MP4, MP4StreamInfoError
 
 class Sector(models.Model):
     sector_name = models.CharField(max_length=255)
@@ -46,7 +48,7 @@ class Course(models.Model):
     def total_course_length(self):
         length = Decimal(0.0)
         for section in self.course_section:
-            for episode in section.episode.all():
+            for episode in section.episodes.all():
                 length += episode.length
         return get_time(length, type='short')
     
@@ -55,6 +57,13 @@ class CourseSection(models.Model):
     section_title=models.CharField(max_length=225,blank=True,null=True)
     section_number=models.IntegerField(blank=True,null=True)
     episodes=models.ManyToManyField('Episode',blank=True)
+    
+    def total_length(self):
+        total = Decimal(0.0)
+        for episode in self.episodes.all():
+            total += episode.length
+            
+        return get_time(total, type= 'min')
     
     
 class Section(models.Model):
@@ -66,6 +75,13 @@ class Episode(models.Model):
     title = models.CharField(max_length=255)
     file = models.FileField(upload_to='course_videos')
     length = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    
+    def get_video_length(self):
+        try:
+            video = MP4(self.file)
+        except MP4StreamInfoError
+            
     
     
 class Comment(models.Model):
