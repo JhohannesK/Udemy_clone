@@ -8,13 +8,13 @@ from mutagen.mp4 import MP4, MP4StreamInfoError
 
 class Sector(models.Model):
     sector_name = models.CharField(max_length=255)
-    sector_uuid = models.UUIDField(default=uuid.uuid5, unique=True)
-    related_courses = models.ManyToManyField('Course')
+    sector_uuid = models.UUIDField(default=uuid.uuid4, unique=True)
+    related_courses = models.ManyToManyField('Course', blank=True)
     sector_image = models.ImageField(upload_to='sector_image')
     
     
     def get_absolute_url_of_image(self):
-        return 'http://localhost' + self.sector_image
+        return 'http://localhost:8000' + self.sector_image.url
     
     
     
@@ -25,8 +25,8 @@ class Course(models.Model):
     updated = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     language = models.CharField(max_length=50)
-    course_section = models.ManyToManyField('CourseSection')
-    comments = models.ManyToManyField('Comment')
+    course_section = models.ManyToManyField('CourseSection', blank=True)
+    comments = models.ManyToManyField('Comment', blank=True)
     image_url = models.ImageField(upload_to='course_images')
     course_uuid = models.UUIDField(default=uuid.uuid4, unique=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
@@ -52,6 +52,10 @@ class Course(models.Model):
                 length += episode.length
         return get_time(length, type='short')
     
+    def get_absolute_url(self):
+        return 'http://localhost:8000/'+self.image_url.url
+    
+    
     
 class CourseSection(models.Model):
     section_title=models.CharField(max_length=225,blank=True,null=True)
@@ -68,7 +72,7 @@ class CourseSection(models.Model):
     
 class Section(models.Model):
     section_title = models.CharField(max_length=255)
-    episodes = models.ManyToManyField('Episode')
+    episodes = models.ManyToManyField('Episode', blank=True)
     
     
 class Episode(models.Model):
@@ -80,7 +84,20 @@ class Episode(models.Model):
     def get_video_length(self):
         try:
             video = MP4(self.file)
-        except MP4StreamInfoError
+            return video.info.length
+        except MP4StreamInfoError:
+            return 0.0
+        
+        def get_get_video_length_time(self):
+            return get_time(self.length)
+        
+        def get_absolute_url(self):
+            return 'http://localhost:8000'+self.file.url
+        
+        def save(self, *args, **kwargs):
+            self.length=self.get_video_length()
+            return super().save(*args, **kwargs)
+        
             
     
     
